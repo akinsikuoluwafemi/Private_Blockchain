@@ -9,11 +9,8 @@
 const express = require("express");
 const morgan = require("morgan");
 const bodyParser = require("body-parser");
-// const bitcoin = require("bitcoinjs-lib");
-// const bitcoinMessage = require("bitcoinjs-message");
+const logger = require("./utils/index.js");
 
-// const block = require("./src/block.js");
-// const blockchain = require("./src/blockchain.js");
 /**
  * Require the Blockchain class. This allow us to have only one instance of the class.
  */
@@ -52,74 +49,10 @@ class ApplicationServer {
   start() {
     let self = this;
     this.app.listen(this.app.get("port"), () => {
-      console.log(`Server Listening for port: ${self.app.get("port")}`);
-
-      // ------------------------------------------------------
-
-      // // Test Block
-      // let newBlock = new block.Block("Test Block");
-      // let anotherBlock = new block.Block("Another Block");
-      // let blockChain = new blockchain.Blockchain();
-
-      // blockChain._addBlock(newBlock);
-      // blockChain._addBlock(anotherBlock);
-
-      // console.log(blockChain.chain);
-      // console.log(newBlock.getBData());
-      // console.log(blockChain.chain.length);
-      // console.log("------------------");
-      // blockChain.getBlockByHeight(1).then((result) => console.log(result));
-      // console.log("------------------");
-
-      // //
-      // const wifPrivateKey =
-      //   "L3Tf8zy84U25XcZ8qjwBssUPxhS1xZSPzKCV22EuuztowYDXhnbX";
-
-      // // Create an ECPair (Elliptic Curve key pair) from the WIF private key
-      // const keyPair = bitcoin.ECPair.fromWIF(wifPrivateKey);
-
-      // const privateKey = keyPair.privateKey;
-
-      // const message =
-      //   "bc1qysv4cqd3eugamr7wcuk4k4vqgcvnvk8n2mkrsz:1702217604:starRegistry";
-
-      // const address = "bc1qysv4cqd3eugamr7wcuk4k4vqgcvnvk8n2mkrsz";
-
-      // var signature = bitcoinMessage.sign(
-      //   message,
-      //   privateKey,
-      //   keyPair.compressed
-      // );
-      // console.log("signature", signature.toString("base64"));
-
-      // // const verify = bitcoinMessage.verify(message, address, signature);
-
-      // // console.log("verify", verify);
-
-      // console.log("keyPair", keyPair);
-      // console.log("privateKey", privateKey);
-
-      //
-
-      // blockChain.validateChain().then((result) => console.log(result));
-
-      // blockChain
-      //   .getBlockByHash(
-      //     "8c0866242ce303217775af393bb028c42af75ec174f8d5ae331d86bfd6642b96"
-      //   )
-      //   .then((result) => console.log(result));
-
-      // console.log("newBlock", newBlock);
-
-      // Validate Test Block
-      // newBlock.validate().then((result) => {
-      //   console.log(`result: ${result}`);
-      // });
-
-      // const BData = newBlock.getBData();
-      // console.log(BData === "Test Block" ? new Error("null") : BData);
-
-      // ------------------------------------------------------
+      logger.log({
+        level: "info",
+        message: `Server Listening for port: ${self.app.get("port")}`,
+      });
     });
   }
 }

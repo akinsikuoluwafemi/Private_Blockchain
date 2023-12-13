@@ -4,7 +4,7 @@
  *  It uses libraries like `crypto-js` to create the hashes for each block and `bitcoinjs-message`
  *  to verify a message signature. The chain is stored in the array
  *  `this.chain = [];`. Of course each time you run the application the chain will be empty because and array
- *  isn't a persisten storage method.
+ *  isn't a persistent storage method.
  *
  */
 
@@ -48,6 +48,12 @@ class Blockchain {
     });
   }
 
+  //getLatestBlock
+  getLatestBlock() {
+    let self = this;
+    return self.chain[self.chain.length - 1];
+  }
+
   /**
    * _addBlock(block) will store a block in the chain
    * @param {*} block
@@ -63,21 +69,30 @@ class Blockchain {
   _addBlock(block) {
     let self = this;
     return new Promise(async (resolve, reject) => {
-      // assign the height
-      block.height = self.chain.length;
-      // assign the timestamp
-      block.time = new Date().getTime().toString().slice(0, -3);
-      // assign the previousBlockHash
-      if (self.chain.length > 0) {
-        //if the blockchain has blocks more than 0, then assign the previousBlockHash
-        block.previousBlockHash = self.chain[self.chain.length - 1].hash;
-      }
-      block.hash = SHA256(JSON.stringify(block)).toString();
+      // validate the chain
+      let errorLogs = await self.validateChain(); //returns an array of errors
 
-      //add block to the chain
-      self.chain.push(block);
-      //update chain height
-      self.height = self.chain.length - 1;
+      //call the validateChain method to validate the chain
+      if (errorLogs.length > 0) {
+        //if there are errors, then reject the promise
+        reject(errorLogs);
+      } else {
+        if (self.chain.length > 0) {
+          // assign the previousBlockHash
+          block.previousBlockHash = self.getLatestBlock().hash;
+        }
+        // assign the height
+        block.height = self.chain.length;
+        // assign the timestamp
+        block.time = new Date().getTime().toString().slice(0, -3);
+
+        //create the block hash
+        block.hash = SHA256(JSON.stringify(block)).toString();
+        //add push the block into the chain array
+        self.chain.push(block);
+        //update chain height
+        block.height = self.chain.length - 1;
+      }
       resolve(block);
     });
   }
@@ -121,6 +136,7 @@ class Blockchain {
     return new Promise(async (resolve, reject) => {
       let messageTime = parseInt(message.split(":")[1]);
       let currentTime = parseInt(new Date().getTime().toString().slice(0, -3));
+
       let timeElapsed = currentTime - messageTime;
       if (timeElapsed < 300) {
         // 5 minutes
@@ -162,7 +178,7 @@ class Blockchain {
   getBlockByHeight(height) {
     let self = this;
     return new Promise((resolve, reject) => {
-      let block = self.chain.filter((p) => p.height === height)[0];
+      let block = self.chain.find((p) => p.height === height);
       if (block) {
         resolve(block);
       } else {
@@ -202,7 +218,6 @@ class Blockchain {
     let self = this;
     let errorLog = [];
     return new Promise(async (resolve, reject) => {
-      //
       for (let i = 0; i < self.chain.length; i++) {
         //loop through the chain
         let block = self.chain[i]; //get the block
@@ -211,18 +226,19 @@ class Blockchain {
         if (!isValid) {
           //if the block is not valid, push the error to the errorLog
           errorLog.push(`Block ${block.height} is not valid`);
-        }
-        if (block.height > 0) {
-          //if the block height is more than 0, then check the previousBlockHash
-          let previousBlock = self.chain[i - 1]; //get the previous block
-          if (block.previousBlockHash !== previousBlock.hash) {
-            //if the previousBlockHash is not equal to the hash of the previous block, then push the error to the errorLog
-            errorLog.push(`Block ${block.height} is not valid`);
+        } else {
+          if (block.height > 0) {
+            //if the block height is more than 0, then check the previousBlockHash
+            let previousBlock = self.chain[i - 1]; //get the previous block
+            // console.log(block.previousBlockHash, previousBlock.hash);
+            if (block.previousBlockHash !== previousBlock.hash) {
+              //if the previousBlockHash is not equal to the hash of the previous block, then push the error to the errorLog
+              errorLog.push(`Block ${block.height} is not valid`);
+            }
           }
         }
       }
       resolve(errorLog);
-      //
     });
   }
 }
